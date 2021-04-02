@@ -12,7 +12,6 @@ public:
 
     bool intersect(const Vec3&, const Vec3&, Vec3&) const;
     Vec3 normal(const Vec3&) const;
-    void print() const;
 
 protected:
 

@@ -12,7 +12,7 @@ Sphere::Sphere(const Color& col, float reflCoeff, float opacity, const Vec3& cen
 bool Sphere::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const {
 
     // if distance between line and center < radius => intersection(s)
-    if(((center - p) ^ dir).length() / dir.length() < radius && dir.angle(center - p) > 0 && (p - center).length() > radius) {
+    if(((center - p) ^ dir).length() / dir.length() < radius && dir.angle(center - p) > 0) {
 
         float p_0 = p.x, p_1 = p.y, p_2 = p.z;
         float v_0 = dir.x, v_1 = dir.y, v_2 = dir.z;
@@ -22,7 +22,8 @@ bool Sphere::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const
         float b = 2 * (v_0 * (p_0 - c_0) + v_1 * (p_1 - c_1) + v_2 * (p_2 - c_2));
         float c = (p_0 - c_0) * (p_0 - c_0) + (p_1 - c_1) * (p_1 - c_1) + (p_2 - c_2) * (p_2 - c_2) - radius * radius;
 
-        float t = (-1 * b - sqrt(b * b - 4 * a * c)) / (2 * a);
+        float det = sqrt(b * b - 4 * a * c);
+        float t = (p - center).length() > radius ? (-1 * b - det) / (2 * a) : (-1 * b + det) / (2 * a);
         intersection.x = p_0 + t * v_0; intersection.y = p_1 + t * v_1; intersection.z = p_2 + t * v_2;
         return true;
     }

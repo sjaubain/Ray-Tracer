@@ -24,8 +24,3 @@ bool Plane::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const 
 Vec3 Plane::normal(const Vec3& v) const {
     return n;
 }
-
-void Plane::print() const {
-    std::cout << "plane";
-}
-

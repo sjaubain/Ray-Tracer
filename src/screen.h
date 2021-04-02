@@ -14,7 +14,7 @@
 #define REFRESH_DELAY_MILLIS 20
 #define N_THREADS 1
 #define N_TURN 6
-#define MAX_RECURSIVE_DEPTH 2
+#define MAX_RECURSIVE_DEPTH 7
 #define EPSILON 0.0001
 
 class Screen {
@@ -58,7 +58,7 @@ private:
 
     Vec3 cameraPos;
     Vec3 cameraLookAt;
-    Vec3 light, light2;
+    Vec3 light;
     Vec3 p, e1, e2; // base vectors for the plane representing the view port
                     // p is the center point of the view port
 

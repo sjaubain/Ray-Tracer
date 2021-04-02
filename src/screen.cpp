@@ -13,7 +13,6 @@ Screen::Screen(const char* title) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     light = Vec3(200, 200, 600);
-    light2 = Vec3(-500, 1000, 600);
 }
 
 Screen::~Screen() {
@@ -108,7 +107,7 @@ void Screen::addShape(Shape* shape) {
 Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
 
     Vec3 i, j;
-    Color c = Color::darksky; // default color for sky
+    Color c = Color::sky; // default color for sky
     float minDist = 10000000;
 
     for(Shape* s : model) {
@@ -134,10 +133,11 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
 
                     Vec3 n = s->normal(i);
                     float alpha = (n.angle(light - i) + 1) / 2;
-                    c = (alpha) * s->getColor(i);
+                    // some "black magic" to modulate color with light
+                    c = alpha * alpha * Color::white + (1 - alpha * alpha) * alpha * s->getColor(i);
 
                     if(shadowed) {
-                        c = 0.5 * c + 0.5 * Color::black;
+                        c = 0.6 * c + 0.4 * Color::black;
                     }
 
                     shadowed = false;
