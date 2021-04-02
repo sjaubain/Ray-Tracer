@@ -12,7 +12,7 @@ Sphere::Sphere(const Color& col, float reflCoeff, float opacity, const Vec3& cen
 bool Sphere::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const {
 
     // if distance between line and center < radius => intersection(s)
-    if(((center - p) ^ dir).length() / dir.length() < radius && dir.angle(center - p) > 0 ) {
+    if(((center - p) ^ dir).length() / dir.length() < radius && dir.angle(center - p) > 0 && (p - center).length() > radius) {
 
         float p_0 = p.x, p_1 = p.y, p_2 = p.z;
         float v_0 = dir.x, v_1 = dir.y, v_2 = dir.z;
@@ -32,8 +32,4 @@ bool Sphere::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const
 
 Vec3 Sphere::normal(const Vec3& v) const {
     return v - center;
-}
-
-void Sphere::print() const {
-    std::cout << "sphere";
 }
