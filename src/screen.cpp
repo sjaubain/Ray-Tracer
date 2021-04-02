@@ -1,5 +1,6 @@
 #include "screen.h"
 #include <cmath>
+#include <algorithm>
 
 Screen::Screen(const char* title) {
     SDL_Init(SDL_INIT_VIDEO);
@@ -11,7 +12,8 @@ Screen::Screen(const char* title) {
         SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    light = Vec3(800, 1800, 6000);
+    light = Vec3(200, 200, 600);
+    light2 = Vec3(-500, 1000, 600);
 }
 
 Screen::~Screen() {
@@ -106,13 +108,15 @@ void Screen::addShape(Shape* shape) {
 Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
 
     Vec3 i, j;
-    Color c = Color(210, 210, 215); // default color for sky
+    Color c = Color::darksky; // default color for sky
     float minDist = 10000000;
+
     for(Shape* s : model) {
 
         if(s->intersect(p, dir, i)) {
 
-            if((i - p).length() < minDist) {
+            float objectDist = (i - p).length();
+            if(objectDist < minDist) {
 
                 // to select first object hit by ray
                 minDist = (i - p).length();
@@ -123,26 +127,33 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
                 if(recursiveDepth != 0) {
                     for(Shape* t : model) {
                         if(s != t // must not consider itself for shadowing effects
-                           && !s->intersect(i + 0.0001 * (light - i), light - i, j)
+                           && !s->intersect(i + EPSILON * (light - i), light - i, j)
                            && t->intersect(i, light - i, j) && ((j - i).length() < (light - i).length()))
                             shadowed = true;
                     }
 
                     Vec3 n = s->normal(i);
                     float alpha = (n.angle(light - i) + 1) / 2;
-                    c = (alpha * alpha) * s->getColor(i);
+                    c = (alpha) * s->getColor(i);
 
                     if(shadowed) {
                         c = 0.5 * c + 0.5 * Color::black;
                     }
 
+                    shadowed = false;
+
                     // reflected vector (Descartes formula)
-                    Vec3 refl = dir - 2 * (dir * n) * n;
+                    Vec3 refl = dir - 2 * (dir * n.normalized()) * n.normalized();
                     float reflCoeff = s->getReflCoeff();
 
                     // recursive call with reflected vector
-                    c = (1 - reflCoeff) * c + reflCoeff * rayTrace(i, refl, recursiveDepth - 1);
-                    continue;
+                    // use of epsilon value to avoid to intersect the new refl ray
+                    // with the same shape (possibly due to rounding errors..)
+                    c = (1 - reflCoeff) * c + reflCoeff * rayTrace(i + EPSILON * refl, refl, recursiveDepth - 1);
+
+                    float op;
+                    if((op = s->getOpacity()) != 1) // throw a new ray through the object if it has a transparency
+                        c = op * c + (1-op) * rayTrace(i + EPSILON * dir, dir, recursiveDepth - 1);
 
                 } else {
 
@@ -150,10 +161,13 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
                     float reflCoeff = s->getReflCoeff();
                     c = (1 - reflCoeff) * s->getColor(i);
                 }
+
             }
         }
     }
+
     return c;
+
 }
 
 int Screen::drawShapes() {
@@ -215,12 +229,13 @@ int Screen::drawShapesPart(void* data) {
                 currLoc = p + w * SCALE * e1 + h * SCALE * e2;
                 ray = currLoc - cameraPos;
 
-                rgb_t rgb = rayTrace(cameraPos, ray, 2).getRgbFormat();
+                rgb_t rgb = rayTrace(cameraPos, ray, MAX_RECURSIVE_DEPTH).getRgbFormat();
                 for(int i = w; i < w + (N_TURN - turn) && i < (int)args -> endX; ++i) {
                     for(int j = h; j < h + (N_TURN - turn) && j < SCREEN_HEIGHT / 2; ++j) {
                         viewPort[i + SCREEN_WIDTH / 2][j + SCREEN_HEIGHT / 2] = rgb;
                     }
                 }
+
             }
         }
         SDL_SemPost(mustRender);

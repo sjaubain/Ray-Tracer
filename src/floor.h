@@ -9,8 +9,9 @@ class Floor : public Plane {
 
 public:
 
-    Floor(const Color&, float, const Vec3&, const Vec3&, const Vec3&, int, int);
+    Floor(const Color&, float, float, const Vec3&, const Vec3&, const Vec3&, int, int);
     Color getColor(const Vec3&) const;
+    void print() const;
 };
 
 #endif

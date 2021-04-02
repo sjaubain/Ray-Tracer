@@ -8,10 +8,11 @@ class Plane : public Shape {
 
 public:
 
-    Plane(const Color&, float, const Vec3&, const Vec3&, const Vec3&, int, int);
+    Plane(const Color&, float, float, const Vec3&, const Vec3&, const Vec3&, int, int);
 
     bool intersect(const Vec3&, const Vec3&, Vec3&) const;
     Vec3 normal(const Vec3&) const;
+    void print() const;
 
 protected:
 

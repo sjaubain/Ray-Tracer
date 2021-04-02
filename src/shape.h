@@ -13,16 +13,21 @@ public:
 
     virtual Vec3 normal(const Vec3& p) const = 0;
 
-    Shape(const Color& col, float reflCoeff) : color(col), reflCoeff(reflCoeff) {};
+    virtual void print() const = 0;
+
+    Shape(const Color& col, float reflCoeff, float opacity) : color(col), reflCoeff(reflCoeff), opacity(opacity) {};
 
     virtual Color getColor(const Vec3&) const {return color;}
 
     float getReflCoeff() const {return reflCoeff;}
 
+    float getOpacity() const {return opacity;}
+
 private:
 
     Color color;
     float reflCoeff;
+    float opacity;
 };
 
 #endif

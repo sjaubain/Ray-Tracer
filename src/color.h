@@ -19,6 +19,8 @@ public:
     Color operator * (float) const;
     Color operator + (const Color&) const;
     rgb_t getRgbFormat() const;
+    void print() const;
+    Color mixWith(const Color&, float) const;
 
     static const uint8_t MIN = 0x00; static const uint8_t MAX = 0xFF;
     static const Color red;
@@ -26,6 +28,8 @@ public:
     static const Color blue;
     static const Color white;
     static const Color black;
+    static const Color sky;
+    static const Color darksky;
 
 private:
 

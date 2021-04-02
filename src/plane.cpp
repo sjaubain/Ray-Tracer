@@ -1,7 +1,7 @@
 #include "plane.h"
 
-Plane::Plane(const Color& col, float reflCoeff, const Vec3& O, const Vec3& e1, const Vec3& e2, int w, int h) :
-    Shape(col, reflCoeff), O(O), e1(e1 * w), e2(e2 * h), w(w), h(h) {n = this->e1 ^ this->e2;}
+Plane::Plane(const Color& col, float reflCoeff, float opacity, const Vec3& O, const Vec3& e1, const Vec3& e2, int w, int h) :
+    Shape(col, reflCoeff, opacity), O(O), e1(e1 * w), e2(e2 * h), w(w), h(h) {n = this->e1 ^ this->e2;}
 
 bool Plane::intersect(const Vec3& p, const Vec3& dir, Vec3& intersection) const {
 
@@ -25,4 +25,7 @@ Vec3 Plane::normal(const Vec3& v) const {
     return n;
 }
 
+void Plane::print() const {
+    std::cout << "plane";
+}
 
