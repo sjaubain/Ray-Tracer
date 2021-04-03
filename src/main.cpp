@@ -27,6 +27,7 @@ int main(int argc, char * argv[])
     Plane p3(Color::white, 0.1, 1., Vec3(-4500, -4500, 0), Vec3(0, 1, 0), Vec3(0, 0, 1), 9000, 5000);
 
     Screen sc("Ray Tracer");
+    sc.loadSkyImage("./sky.bmp");
     sc.addShape(&p1);
     sc.addShape(&p2);
     sc.addShape(&p3);

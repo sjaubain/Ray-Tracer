@@ -1,6 +1,9 @@
 #include "sphere.h"
 #include <cmath>
 
+Sphere::Sphere()
+: Shape(Color::white, 0, 1), center(Vec3(0, 0, 0)), radius(0) {}
+
 Sphere::Sphere(const Color& col, float reflCoeff, float opacity, const Vec3& center, float radius)
 : Shape(col, reflCoeff, opacity), center(center), radius(radius) {}
 

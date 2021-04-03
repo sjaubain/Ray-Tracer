@@ -3,6 +3,7 @@
 #include <vector>
 #include "shape.h"
 #include "sphere.h"
+#include "bitmap_image.hpp"
 
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -47,6 +48,8 @@ public:
     void start();
     void lookAt(float, float, float, float, float, float);
     Color rayTrace(const Vec3&, const Vec3&, int);
+    void loadSkyImage(const std::string&);
+    Color getSkyPixel(const Vec3&, const Vec3&) const;
 
 private:
 
@@ -54,7 +57,9 @@ private:
     SDL_Renderer* renderer;
     rgb_t viewPort[SCREEN_WIDTH][SCREEN_HEIGHT];
     std::vector<Shape*> model;
-    bool quit, restart;
+    bool quit, restart, hasSkyImage;
+    bitmap_image skyImage;
+    Sphere skyImageSphere;
 
     Vec3 cameraPos;
     Vec3 cameraLookAt;

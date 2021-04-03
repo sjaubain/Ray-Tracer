@@ -8,6 +8,7 @@ class Sphere : public Shape {
 
 public:
 
+    Sphere();
     Sphere(const Color&, float, float, const Vec3&, float);
 
     bool intersect(const Vec3&, const Vec3&, Vec3&) const;

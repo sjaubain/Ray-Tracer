@@ -24,6 +24,30 @@ Screen::~Screen() {
     SDL_DestroySemaphore(nextTurn);
 }
 
+void Screen::loadSkyImage(const std::string& filename) {
+    skyImage = bitmap_image(filename);
+    skyImageSphere = Sphere(Color::sky, 0, 1, Vec3(0, 0, 0), 100000);
+    hasSkyImage = true;
+}
+
+Color Screen::getSkyPixel(const Vec3& p, const Vec3& dir) const {
+    Color ret = skyImageSphere.getColor(p);
+    if(hasSkyImage) {
+        return ret;
+    } else {
+        Vec3 i;
+        skyImageSphere.intersect(p, dir, i);
+        float theta = i.angle(Vec3(0, 0, 1));
+        i.z = 0;
+        float phi = i.angle(Vec3(1, 0, 0));
+
+        if(theta < 0) return ret;
+
+        _rgb_t rgb = skyImage.get_pixel((phi + 1) / 2. * skyImage.width(), (1-theta) * skyImage.height());
+        return Color(rgb.red, rgb.green, rgb.blue);
+    }
+}
+
 void Screen::repaint() {
     restart = 1;
     SDL_CondBroadcast(mustRestart);
@@ -36,7 +60,7 @@ void Screen::start() {
     mustRender = SDL_CreateSemaphore(0);
     nextTurn = SDL_CreateSemaphore(0);
     turn = 0;
-    quit = false; restart = false;
+    quit = false; restart = false; hasSkyImage = false;
 
     renderThread = SDL_CreateThread(drawShapesMediator, "renderThread", this);
     for(int i = 0; i < N_THREADS; ++i) {
@@ -107,9 +131,11 @@ void Screen::addShape(Shape* shape) {
 Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
 
     Vec3 i, j;
-    Color c = Color::sky; // default color for sky
+    Color c; // default color for sky
     float minDist = 10000000, curDist;
 
+    // first sort all objects by distance from ray origin p to intersection
+    // point j, so we can proceed further computation on the nearest object only
     std::vector<std::pair<Shape*, float>> sortedByDist;
     for(Shape* s : model) {
         if(s->intersect(p + EPSILON * dir, dir, j)) {
@@ -124,8 +150,6 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
     [](const std::pair<Shape*, float>& a, const std::pair<Shape*, float>& b) {
         return a.second < b.second;
     });
-
-
 
     Shape* s = sortedByDist.size() ? sortedByDist.at(0).first : nullptr;
 
@@ -173,8 +197,13 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
             c = (1 - reflCoeff) * s->getColor(i);
         }
 
+    } else {
 
-    }return c;
+        // if the ray doesn't hit any shape
+        c = getSkyPixel(p, dir);
+    }
+
+    return c;
 }
 
 int Screen::drawShapes() {
