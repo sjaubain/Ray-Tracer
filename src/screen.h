@@ -14,7 +14,7 @@
 #define REFRESH_DELAY_MILLIS 20
 #define N_THREADS 1
 #define N_TURN 6
-#define MAX_RECURSIVE_DEPTH 7
+#define MAX_RECURSIVE_DEPTH 4
 #define EPSILON 0.0001
 
 class Screen {

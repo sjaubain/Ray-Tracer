@@ -22,8 +22,6 @@ int main(int argc, char * argv[])
     Sphere s9(Color::black, 0.6, 0.7, Vec3(1500, -490, 930), 920);
     Sphere s10(Color::black, 0.6, 0.7, Vec3(-200, 1700, 530), 520);
 
-
-
     Floor p1(Color::white, 0.4, 1., Vec3(-45000, -45000, 0), Vec3(1, 0, 0), Vec3(0, 1, 0), 90000, 90000);
     Plane p2(Color(125, 120, 120), 0, 1, Vec3(-4500, -4500, 0), Vec3(0, 0, 1), Vec3(1, 0, 0), 5000, 9000);
     Plane p3(Color::white, 0.1, 1., Vec3(-4500, -4500, 0), Vec3(0, 1, 0), Vec3(0, 0, 1), 9000, 5000);
@@ -45,8 +43,5 @@ int main(int argc, char * argv[])
     sc.lookAt(8000, 8000, 3000, 0, 0, 0);
     sc.start();
 
-    Color c = Color::black;
-    c = c.mixWith(Color::white, 0.5);
-    c.print();
     return EXIT_SUCCESS;
 }

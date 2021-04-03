@@ -108,66 +108,73 @@ Color Screen::rayTrace(const Vec3& p, const Vec3& dir, int recursiveDepth) {
 
     Vec3 i, j;
     Color c = Color::sky; // default color for sky
-    float minDist = 10000000;
+    float minDist = 10000000, curDist;
 
+    std::vector<std::pair<Shape*, float>> sortedByDist;
     for(Shape* s : model) {
-
-        if(s->intersect(p, dir, i)) {
-
-            float objectDist = (i - p).length();
-            if(objectDist < minDist) {
-
-                // to select first object hit by ray
-                minDist = (i - p).length();
-
-                // intersection with object pointing towards light
-                bool shadowed = false;
-
-                if(recursiveDepth != 0) {
-                    for(Shape* t : model) {
-                        if(s != t // must not consider itself for shadowing effects
-                           && !s->intersect(i + EPSILON * (light - i), light - i, j)
-                           && t->intersect(i, light - i, j) && ((j - i).length() < (light - i).length()))
-                            shadowed = true;
-                    }
-
-                    Vec3 n = s->normal(i);
-                    float alpha = (n.angle(light - i) + 1) / 2;
-                    // some "black magic" to modulate color with light
-                    c = alpha * alpha * Color::white + (1 - alpha * alpha) * alpha * s->getColor(i);
-
-                    if(shadowed) {
-                        c = 0.6 * c + 0.4 * Color::black;
-                    }
-
-                    shadowed = false;
-
-                    // reflected vector (Descartes formula)
-                    Vec3 refl = dir - 2 * (dir * n.normalized()) * n.normalized();
-                    float reflCoeff = s->getReflCoeff();
-
-                    // recursive call with reflected vector
-                    // use of epsilon value to avoid to intersect the new refl ray
-                    // with the same shape (possibly due to rounding errors..)
-                    c = (1 - reflCoeff) * c + reflCoeff * rayTrace(i + EPSILON * refl, refl, recursiveDepth - 1);
-
-                    float op;
-                    if((op = s->getOpacity()) != 1) // throw a new ray through the object if it has a transparency
-                        c = op * c + (1-op) * rayTrace(i + EPSILON * dir, dir, recursiveDepth - 1);
-
-                } else {
-
-                    // end of recursion
-                    float reflCoeff = s->getReflCoeff();
-                    c = (1 - reflCoeff) * s->getColor(i);
-                }
-
+        if(s->intersect(p + EPSILON * dir, dir, j)) {
+            sortedByDist.push_back(std::make_pair(s, curDist = (j - p).length()));
+            if(curDist < minDist) {
+                minDist = curDist;
+                i = j;
             }
         }
     }
+    sort(sortedByDist.begin(), sortedByDist.end(),
+    [](const std::pair<Shape*, float>& a, const std::pair<Shape*, float>& b) {
+        return a.second < b.second;
+    });
 
-    return c;
 
+
+    Shape* s = sortedByDist.size() ? sortedByDist.at(0).first : nullptr;
+
+    if(s) {
+
+        // intersection with object pointing towards light
+        bool shadowed = false;
+
+        if(recursiveDepth != 0) {
+            for(Shape* t : model) {
+                if(s != t // must not consider itself for shadowing effects
+                   && !s->intersect(i + EPSILON * (light - i), light - i, j)
+                   && t->intersect(i, light - i, j) && ((j - i).length() < (light - i).length()))
+                    shadowed = true;
+            }
+
+            Vec3 n = s->normal(i);
+            float alpha = (n.angle(light - i) + 1) / 2;
+            // some "black magic" to modulate color with light
+            c = alpha * alpha * Color::white + (1 - alpha * alpha) * alpha * s->getColor(i);
+
+            if(shadowed) {
+                c = 0.6 * c + 0.4 * Color::black;
+            }
+
+            shadowed = false;
+
+            // reflected vector (Descartes formula)
+            Vec3 refl = dir - 2 * (dir * n.normalized()) * n.normalized();
+            float reflCoeff = s->getReflCoeff();
+
+            // recursive call with reflected vector
+            // use of epsilon value to avoid to intersect the new refl ray
+            // with the same shape (possibly due to rounding errors..)
+            c = (1 - reflCoeff) * c + reflCoeff * rayTrace(i + EPSILON * refl, refl, recursiveDepth - 1);
+
+            float op;
+            if((op = s->getOpacity()) != 1) // throw a new ray through the object if it has a transparency
+                c = op * c + (1-op) * rayTrace(i + EPSILON * dir, dir, recursiveDepth - 1);
+
+        } else {
+
+            // end of recursion
+            float reflCoeff = s->getReflCoeff();
+            c = (1 - reflCoeff) * s->getColor(i);
+        }
+
+
+    }return c;
 }
 
 int Screen::drawShapes() {
@@ -182,6 +189,8 @@ int Screen::drawShapes() {
             if(quit)
                 return 0;
 
+            int time = SDL_GetTicks();
+
             // wake all threads
             for(int t = 0; t < N_THREADS; ++t)
                 SDL_SemPost(nextTurn);
@@ -190,6 +199,8 @@ int Screen::drawShapes() {
             for(int t = 0; t < N_THREADS; ++t) {
                 SDL_SemWait(mustRender);
             }
+
+            std::cout << "render time with pixel size " << N_TURN - turn << " : " << SDL_GetTicks() - time << " ms\n";
 
             if(!restart)
                 render();
