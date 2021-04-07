@@ -13,6 +13,8 @@ Screen::Screen(const char* title) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     light = Vec3(200, 200, 600);
+    turn = 0;
+    quit = false; restart = false; hasSkyImage = false;
 }
 
 Screen::~Screen() {
@@ -32,7 +34,7 @@ void Screen::loadSkyImage(const std::string& filename) {
 
 Color Screen::getSkyPixel(const Vec3& p, const Vec3& dir) const {
     Color ret = skyImageSphere.getColor(p);
-    if(hasSkyImage) {
+    if(!hasSkyImage) {
         return ret;
     } else {
         Vec3 i;
@@ -59,8 +61,6 @@ void Screen::start() {
     mustRestart = SDL_CreateCond();
     mustRender = SDL_CreateSemaphore(0);
     nextTurn = SDL_CreateSemaphore(0);
-    turn = 0;
-    quit = false; restart = false; hasSkyImage = false;
 
     renderThread = SDL_CreateThread(drawShapesMediator, "renderThread", this);
     for(int i = 0; i < N_THREADS; ++i) {
